@@ -2,7 +2,7 @@
   "name": "@suins/toolkit",
   "author": "Sui Name Service <info@suins.io>",
   "description": "SuiNS TypeScript SDK",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "files": [
     "dist",
