@@ -16,4 +16,10 @@ describe('SuiNS Client', () => {
       expect(await client.getAddress(domainName)).toBe(walletAddress);
     }, 300000);
   });
+
+  describe('getName', () => {
+    it('returns the default name of an address if it was set', async () => {
+      expect(await client.getName(walletAddress)).toBe(domainName);
+    }, 300000);
+  });
 });

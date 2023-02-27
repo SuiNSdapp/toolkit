@@ -118,6 +118,19 @@ class SuinsClient {
 
     return resolverData.addr as string;
   }
+
+  /**
+   * Returns the default name of the input address if it was set. Otherwise, it will return undefined.
+   *
+   * @param address a Sui address.
+   */
+  async getName(address: string): Promise<string> {
+    const resolverData = await this.getResolverData(
+      `${address.slice(2)}.addr.reverse`,
+    );
+
+    return resolverData.name as string;
+  }
 }
 
 export { SuinsClient };
