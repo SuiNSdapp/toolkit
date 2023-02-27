@@ -1,0 +1,4 @@
+class SuinsClient {
+}
+
+export { SuinsClient };

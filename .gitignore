@@ -1,0 +1,14 @@
+# IDE
+**/.history/
+**/.vscode/
+
+# OSX
+.DS_Store
+
+# App build directories
+dist/
+.pre-push*
+
+# Node.js
+node_modules
+*.tsbuildinfo
