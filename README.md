@@ -1,7 +1,7 @@
 # SuiNS TypeScript SDK
 
 ![test workflow](https://github.com/SuiNSdapp/toolkit/actions/workflows/e2e-test.yml/badge.svg)
-[![npm version](https://badge.fury.io/js/@suins%2Ftoolkit.svg)](https://badge.fury.io/js/@suins%2Ftoolkit)
+[![npm](https://img.shields.io/npm/v/@suins/toolkit?&color=brightgreen)](https://www.npmjs.com/package/@suins/toolkit)
 
 This is a lightweight SDK (1kB minified bundle size), providing utility classes and functions for applications to interact with on-chain `.sui` and `.move` domains registered from [Sui Name Service (suins.io)](https://suins.io).
 
