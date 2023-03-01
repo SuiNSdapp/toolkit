@@ -10,7 +10,7 @@ import { parseObjectDataResponse, parseResolverContents } from './utils/parser';
 
 class SuinsClient {
   private suiProvider: JsonRpcProvider;
-  private contractObjects: SuiNSContract | undefined;
+  contractObjects: SuiNSContract | undefined;
 
   constructor(suiProvider: JsonRpcProvider, contractObjects?: SuiNSContract) {
     if (!suiProvider) {
@@ -53,10 +53,17 @@ class SuinsClient {
       (byte) => `${byte}u8`,
     );
 
-    return await this.suiProvider.getDynamicFieldObject(
-      parentObjectId,
-      `0x1::string::String {bytes: vector[${keyByteVector.join(', ')}]}`,
-    );
+    try {
+      return await this.suiProvider.getDynamicFieldObject(
+        parentObjectId,
+        `0x1::string::String {bytes: vector[${keyByteVector.join(', ')}]}`,
+      );
+    } catch (error) {
+      if (!(error as Error).message.includes('Cannot find dynamic field')) {
+        throw error;
+      }
+      return;
+    }
   }
 
   /**
@@ -75,37 +82,25 @@ class SuinsClient {
   async getResolverData(key: string): Promise<ResolverData> {
     await this.getSuinsContractObjects();
 
-    try {
-      const registryResponse = await this.getDynamicFieldObject(
-        (this.contractObjects as SuiNSContract).registry,
-        key,
+    const registryResponse = await this.getDynamicFieldObject(
+      (this.contractObjects as SuiNSContract).registry,
+      key,
+    );
+    const resolver = parseObjectDataResponse(registryResponse)
+      ?.resolver as SuiAddress;
+
+    let resolverData;
+    if (resolver) {
+      const resolverResponse = await this.getDynamicFieldObject(resolver, key);
+      resolverData = parseResolverContents(
+        parseObjectDataResponse(resolverResponse)?.contents,
       );
-
-      const resolver = parseObjectDataResponse(registryResponse)
-        .resolver as SuiAddress;
-
-      let resolverData: ResolverData = {};
-      try {
-        const resolverResponse = await this.getDynamicFieldObject(
-          resolver,
-          key,
-        );
-        resolverData = parseResolverContents(
-          parseObjectDataResponse(resolverResponse).contents,
-        );
-      } catch (_) {}
-
-      return {
-        ...resolverData,
-        resolver,
-      };
-    } catch (error) {
-      if (!(error as Error).message.includes('Cannot find dynamic field')) {
-        throw error;
+      if (resolverData) {
+        resolverData.resolver = resolver;
       }
-
-      return {};
     }
+
+    return resolverData ?? {};
   }
 
   /**
@@ -113,10 +108,10 @@ class SuinsClient {
    *
    * @param domain a domain name ends with .sui or .move.
    */
-  async getAddress(domain: string): Promise<string> {
-    const resolverData = await this.getResolverData(domain);
+  async getAddress(domain: string): Promise<string | undefined> {
+    const { addr } = await this.getResolverData(domain);
 
-    return resolverData.addr as string;
+    return addr as string;
   }
 
   /**
@@ -124,12 +119,24 @@ class SuinsClient {
    *
    * @param address a Sui address.
    */
-  async getName(address: string): Promise<string> {
-    const resolverData = await this.getResolverData(
+  async getName(address: string): Promise<string | undefined> {
+    const { name } = await this.getResolverData(
       `${address.slice(2)}.addr.reverse`,
     );
 
-    return resolverData.name as string;
+    if (!name) return;
+
+    const registryResponse = await this.getDynamicFieldObject(
+      (this.contractObjects as SuiNSContract).registry,
+      name,
+    );
+    const owner = parseObjectDataResponse(registryResponse)
+      ?.owner as SuiAddress;
+
+    // check if the owner of this name was the input address
+    if (address !== owner) return;
+
+    return name as string;
   }
 }
 

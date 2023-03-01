@@ -1,6 +1,7 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
+  "testTimeout": 15000,
   "testEnvironment": "node",
   "testRegex": ".e2e-test.ts$",
   "transform": {

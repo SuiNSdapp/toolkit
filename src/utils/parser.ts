@@ -7,8 +7,11 @@ import {
 
 import { ResolverData } from '../types';
 
-export const parseObjectDataResponse = (response: GetObjectDataResponse) =>
-  ((response.details as SuiObject).data as SuiMoveObject).fields.value.fields;
+export const parseObjectDataResponse = (
+  response: GetObjectDataResponse | undefined,
+) =>
+  ((response?.details as SuiObject)?.data as SuiMoveObject)?.fields.value
+    .fields;
 
 export const parseResolverContents = (
   contents: Array<SuiMoveObject>,

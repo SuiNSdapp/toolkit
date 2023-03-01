@@ -2,8 +2,8 @@
   "name": "@suins/toolkit",
   "author": "Sui Name Service <info@suins.io>",
   "description": "SuiNS TypeScript SDK",
-  "version": "1.0.3",
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "version": "1.1.0",
   "files": [
     "dist",
     "src"
@@ -45,6 +45,7 @@
     "test": "jest --config ./jest-e2e.json"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@types/jest": "^29.4.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "eslint-config-prettier": "^8.6.0",
