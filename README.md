@@ -51,4 +51,4 @@ const resolverData = await suinsClient.getResolverData('suins.sui');
 
 ## License
 
-[MIT](https://github.com/SuiNSdapp/toolkit/blob/main/LICENSE.md)
+[Apache-2.0](https://github.com/SuiNSdapp/toolkit/blob/main/LICENSE)
