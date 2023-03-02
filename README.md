@@ -38,7 +38,7 @@ const address = await suinsClient.getAddress('suins.sui');
 Fetch the default domain of a `SuiAddress`:
 
 ```typescript
-const defaultDomain = await suinsClient.getAddress(
+const defaultDomain = await suinsClient.getName(
   '0x484f1024c91ad8c9824bf46a708e3529251b2bc3',
 );
 ```
