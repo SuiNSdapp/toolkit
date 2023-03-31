@@ -49,17 +49,20 @@ class SuinsClient {
     parentObjectId: SuiAddress,
     key: string,
   ) {
-    const keyByteVector = Array.from(new TextEncoder().encode(key)).map(
-      (byte) => `${byte}u8`,
-    );
-
     try {
-      return await this.suiProvider.getDynamicFieldObject(
-        parentObjectId,
-        `0x1::string::String {bytes: vector[${keyByteVector.join(', ')}]}`,
-      );
+      return await this.suiProvider.getDynamicFieldObject({
+        parentId: parentObjectId,
+        name: {
+          type: '0x1::string::String',
+          value: key,
+        },
+      });
     } catch (error) {
-      if (!(error as Error).message.includes('Cannot find dynamic field')) {
+      if (
+        !((error as Error).cause as Error).message.includes(
+          'Cannot find dynamic field',
+        )
+      ) {
         throw error;
       }
       return;

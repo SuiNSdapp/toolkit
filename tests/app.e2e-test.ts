@@ -6,9 +6,10 @@ import { SuinsClient } from '../src';
 describe('SuiNS Client', () => {
   const client = new SuinsClient(new JsonRpcProvider(devnetConnection));
   const domainName = 'suins-test.sui';
-  const walletAddress = '0x484f1024c91ad8c9824bf46a708e3529251b2bc3';
+  const walletAddress =
+    '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7';
   const nonExistingDomain = faker.datatype.string(64);
-  const nonExistingWalletAddress = faker.finance.ethereumAddress();
+  const nonExistingWalletAddress = walletAddress.replace('86a7', '0000');
 
   beforeEach(async () => {
     console.log(expect.getState().currentTestName);

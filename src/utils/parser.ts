@@ -1,16 +1,16 @@
 import {
-  GetObjectDataResponse,
+  SuiObjectResponse,
   normalizeSuiAddress,
   SuiMoveObject,
-  SuiObject,
+  SuiObjectData,
 } from '@mysten/sui.js';
 
 import { ResolverData } from '../types';
 
 export const parseObjectDataResponse = (
-  response: GetObjectDataResponse | undefined,
+  response: SuiObjectResponse | undefined,
 ) =>
-  ((response?.details as SuiObject)?.data as SuiMoveObject)?.fields.value
+  ((response?.data as SuiObjectData)?.content as SuiMoveObject)?.fields.value
     .fields;
 
 export const parseResolverContents = (
