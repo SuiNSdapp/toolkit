@@ -27,6 +27,14 @@ const provider = new JsonRpcProvider();
 export const suinsClient = new SuinsClient(provider);
 ```
 
+Choose network type:
+
+```typescript
+export const suinsClient = new SuinsClient(provider, {
+  networkType: 'testnet',
+});
+```
+
 > **Note:** To ensure best performance, please make sure to create only one instance of the SuinsClient class in your application. Then, import the created `suinsClient` instance to use its functions.
 
 Fetch a `SuiAddress` linked to a domain:
@@ -43,10 +51,19 @@ const defaultDomain = await suinsClient.getName(
 );
 ```
 
-Fetch resolver data of a domain:
+Fetch a domain:
 
 ```typescript
-const resolverData = await suinsClient.getResolverData('suins.sui');
+const resolverData = await suinsClient.getNameObjectInfo('suins.sui');
+```
+
+Fetch a domain with its related data:
+
+```typescript
+const resolverData = await suinsClient.getNameObjectInfo('suins.sui', {
+  showAvatar: true,
+  showContentHash: true,
+});
 ```
 
 ## License
