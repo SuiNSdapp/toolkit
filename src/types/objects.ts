@@ -6,9 +6,15 @@ export type SuiNSContract = {
 };
 
 export type ResolverData = {
-  resolver?: SuiAddress;
-  addr?: SuiAddress; // linked address
-  avatar?: SuiAddress; // custom avatar object id
-  contenthash?: string; // ipfs cid
-  name?: string; // default domain name
+  owner: SuiAddress;
+  ttl: number;
+  linkedAddr: SuiAddress | '';
+  defaultDomainName: SuiAddress | '';
+  data?: SuiAddress;
+  avatar?: SuiAddress;
+  contentHash?: SuiAddress;
 };
+
+export type DataFields = 'avatar' | 'contentHash';
+
+export type NetworkType = 'devnet' | 'testnet';

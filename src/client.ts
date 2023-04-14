@@ -1,23 +1,40 @@
 import { JsonRpcProvider, SuiAddress } from '@mysten/sui.js';
 
-import { ResolverData, SuiNSContract } from './types/objects';
+import {
+  DataFields,
+  NetworkType,
+  ResolverData,
+  SuiNSContract,
+} from './types/objects';
 import {
   DEVNET_JSON_FILE,
   GCS_URL,
   TESTNET_JSON_FILE,
 } from './utils/constants';
-import { parseObjectDataResponse, parseResolverContents } from './utils/parser';
+import {
+  camelCase,
+  parseObjectDataResponse,
+  parseRegistryResponse,
+} from './utils/parser';
 
 class SuinsClient {
   private suiProvider: JsonRpcProvider;
   contractObjects: SuiNSContract | undefined;
+  networkType: NetworkType | undefined;
 
-  constructor(suiProvider: JsonRpcProvider, contractObjects?: SuiNSContract) {
+  constructor(
+    suiProvider: JsonRpcProvider,
+    options?: {
+      contractObjects?: SuiNSContract;
+      networkType?: NetworkType;
+    },
+  ) {
     if (!suiProvider) {
       throw new Error('Sui JsonRpcProvider must be specified.');
     }
     this.suiProvider = suiProvider;
-    this.contractObjects = contractObjects;
+    this.contractObjects = options?.contractObjects;
+    this.networkType = options?.networkType;
   }
 
   async getSuinsContractObjects() {
@@ -25,9 +42,7 @@ class SuinsClient {
 
     const contractJsonFileUrl =
       GCS_URL +
-      (this.suiProvider.connection.fullnode.includes('testnet')
-        ? TESTNET_JSON_FILE
-        : DEVNET_JSON_FILE);
+      (this.networkType === 'testnet' ? TESTNET_JSON_FILE : DEVNET_JSON_FILE);
 
     let response;
     try {
@@ -48,12 +63,13 @@ class SuinsClient {
   protected async getDynamicFieldObject(
     parentObjectId: SuiAddress,
     key: string,
+    type = '0x1::string::String',
   ) {
     try {
       return await this.suiProvider.getDynamicFieldObject({
         parentId: parentObjectId,
         name: {
-          type: '0x1::string::String',
+          type: type,
           value: key,
         },
       });
@@ -69,41 +85,79 @@ class SuinsClient {
     }
   }
 
+  protected async getNameData(
+    dataObjectId: SuiAddress,
+    fields: DataFields[] = [],
+  ) {
+    const { data: dynamicFields } = await this.suiProvider.getDynamicFields({
+      parentId: dataObjectId,
+    });
+
+    const filteredFields = new Set(fields);
+    const filteredDynamicFields = dynamicFields.filter(({ name: { value } }) =>
+      filteredFields.has(value),
+    );
+
+    const data = await Promise.allSettled(
+      filteredDynamicFields?.map(({ objectId }) =>
+        this.suiProvider
+          .getObject({
+            id: objectId,
+            options: { showContent: true },
+          })
+          .then(parseObjectDataResponse)
+          .then((object) => [camelCase(object.name), object.value]),
+      ) ?? [],
+    );
+
+    const fulfilledData = data.filter(
+      (e) => e.status === 'fulfilled',
+    ) as PromiseFulfilledResult<[string, any]>[];
+
+    return Object.fromEntries(fulfilledData.map((e) => e.value));
+  }
+
   /**
-   * Returns the resolver data including:
+   * Returns the name object data including:
    *
-   * - resolver?: the resolver address
-   * - avatar?: the avatar object address
-   * - addr?: the linked address
-   * - contenthash?: the ipfs cid
-   * - name?: the default domain name of the owner address
+   * - owner: the owner address
+   * - ttl: caching time-to-live of the name specified by node. If TTL is zero, new data should be fetched on each query.
+   * - linkedAddr: the linked address
+   * - data?: the name data table id
+   * - avatar?: the custom avatar id
+   * - contentHash?: the ipfs cid
    *
    * If the input domain has not been registered, it will return an empty object.
    *
-   * @param key a domain name or a reverse address, e.g. `484f1024c91ad8c9824bf46a708e3529251b2bc3.addr.reverse`.
+   * @param key a domain name or a reverse address, e.g. `3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7.addr.reverse`.
    */
-  async getResolverData(key: string): Promise<ResolverData> {
+  async getNameObjectInfo(
+    name: string,
+    options?: { showAvatar?: boolean; showContentHash?: boolean },
+  ): Promise<ResolverData> {
     await this.getSuinsContractObjects();
 
     const registryResponse = await this.getDynamicFieldObject(
       (this.contractObjects as SuiNSContract).registry,
-      key,
+      name,
     );
-    const resolver = parseObjectDataResponse(registryResponse)
-      ?.resolver as SuiAddress;
+    const { defaultDomainName, ...nameObject } =
+      parseRegistryResponse(registryResponse);
 
-    let resolverData;
-    if (resolver) {
-      const resolverResponse = await this.getDynamicFieldObject(resolver, key);
-      resolverData = parseResolverContents(
-        parseObjectDataResponse(resolverResponse)?.contents,
-      );
-      if (resolverData) {
-        resolverData.resolver = resolver;
-      }
+    if (name.includes('.addr.reverse'))
+      return { defaultDomainName, ...nameObject };
+
+    if (options?.showAvatar || options?.showContentHash) {
+      const fields: DataFields[] = [
+        options?.showAvatar && 'avatar',
+        options?.showContentHash && 'contentHash',
+      ].filter(Boolean) as DataFields[];
+
+      const data = await this.getNameData(nameObject.data, fields);
+      return { ...nameObject, ...data };
     }
 
-    return resolverData ?? {};
+    return nameObject;
   }
 
   /**
@@ -112,9 +166,9 @@ class SuinsClient {
    * @param domain a domain name ends with .sui or .move.
    */
   async getAddress(domain: string): Promise<string | undefined> {
-    const { addr } = await this.getResolverData(domain);
+    const { linkedAddr } = await this.getNameObjectInfo(domain);
 
-    return addr as string;
+    return linkedAddr;
   }
 
   /**
@@ -123,23 +177,17 @@ class SuinsClient {
    * @param address a Sui address.
    */
   async getName(address: string): Promise<string | undefined> {
-    const { name } = await this.getResolverData(
+    const { defaultDomainName } = await this.getNameObjectInfo(
       `${address.slice(2)}.addr.reverse`,
     );
 
-    if (!name) return;
+    if (!defaultDomainName) return;
 
-    const registryResponse = await this.getDynamicFieldObject(
-      (this.contractObjects as SuiNSContract).registry,
-      name,
-    );
-    const owner = parseObjectDataResponse(registryResponse)
-      ?.owner as SuiAddress;
+    const { owner } = await this.getNameObjectInfo(defaultDomainName);
 
-    // check if the owner of this name was the input address
     if (address !== owner) return;
 
-    return name as string;
+    return defaultDomainName;
   }
 }
 
