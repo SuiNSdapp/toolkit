@@ -3,7 +3,7 @@
 ![test workflow](https://github.com/SuiNSdapp/toolkit/actions/workflows/e2e-test.yml/badge.svg)
 [![npm](https://img.shields.io/npm/v/@suins/toolkit?&color=brightgreen)](https://www.npmjs.com/package/@suins/toolkit)
 
-This is a lightweight SDK (1kB minified bundle size), providing utility classes and functions for applications to interact with on-chain `.sui` and `.move` domains registered from [Sui Name Service (suins.io)](https://suins.io).
+This is a lightweight SDK (1kB minified bundle size), providing utility classes and functions for applications to interact with on-chain `.sui` names registered from [Sui Name Service (suins.io)](https://suins.io).
 
 ## Getting started
 
@@ -37,30 +37,30 @@ export const suinsClient = new SuinsClient(provider, {
 
 > **Note:** To ensure best performance, please make sure to create only one instance of the SuinsClient class in your application. Then, import the created `suinsClient` instance to use its functions.
 
-Fetch a `SuiAddress` linked to a domain:
+Fetch a `SuiAddress` linked to a name:
 
 ```typescript
 const address = await suinsClient.getAddress('suins.sui');
 ```
 
-Fetch the default domain of a `SuiAddress`:
+Fetch the default name of a `SuiAddress`:
 
 ```typescript
-const defaultDomain = await suinsClient.getName(
-  '0x484f1024c91ad8c9824bf46a708e3529251b2bc3',
+const defaultName = await suinsClient.getName(
+  '0xc2f08b6490b87610629673e76bab7e821fe8589c7ea6e752ea5dac2a4d371b41',
 );
 ```
 
-Fetch a domain:
+Fetch a name object:
 
 ```typescript
-const resolverData = await suinsClient.getNameObjectInfo('suins.sui');
+const nameObject = await suinsClient.getNameObject('suins.sui');
 ```
 
-Fetch a domain with its related data:
+Fetch a name object with its dynamic data:
 
 ```typescript
-const resolverData = await suinsClient.getNameObjectInfo('suins.sui', {
+const nameObject = await suinsClient.getNameObject('suins.sui', {
   showAvatar: true,
   showContentHash: true,
 });

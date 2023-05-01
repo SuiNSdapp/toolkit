@@ -3,7 +3,7 @@
   "author": "Sui Name Service <info@suins.io>",
   "description": "SuiNS TypeScript SDK",
   "license": "Apache-2.0",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "files": [
     "dist",
     "src"
@@ -61,6 +61,6 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@mysten/sui.js": "^0.30.0"
+    "@mysten/sui.js": "^0.32.2"
   }
 }

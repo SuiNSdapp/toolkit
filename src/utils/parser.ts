@@ -2,6 +2,7 @@ import {
   SuiObjectResponse,
   SuiMoveObject,
   SuiObjectData,
+  normalizeSuiAddress,
 } from '@mysten/sui.js';
 
 export const camelCase = (string: string) =>
@@ -15,11 +16,28 @@ export const parseRegistryResponse = (
   response: SuiObjectResponse | undefined,
 ): any => {
   const fields = parseObjectDataResponse(response)?.value?.fields || {};
-  const data = fields.data?.fields.id.id || {};
-  return Object.fromEntries(
-    Object.entries({ ...fields, data }).map(([key, val]) => [
-      camelCase(key),
-      val,
-    ]),
+
+  const object = Object.fromEntries(
+    Object.entries({ ...fields }).map(([key, val]) => [camelCase(key), val]),
   );
+
+  delete object.data;
+
+  const data = (fields.data?.fields.contents || []).reduce(
+    (acc: Record<string, any>, c: Record<string, any>) => {
+      const key = c.fields.key;
+      const value = c.fields.value;
+
+      return {
+        ...acc,
+        [key]:
+          c.type.includes('Address') || key === 'addr'
+            ? normalizeSuiAddress(value)
+            : value,
+      };
+    },
+    {},
+  );
+
+  return { ...object, ...data };
 };

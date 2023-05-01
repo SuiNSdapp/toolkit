@@ -1,22 +1,15 @@
-import { JsonRpcProvider, devnetConnection } from '@mysten/sui.js';
+import { JsonRpcProvider, testnetConnection } from '@mysten/sui.js';
 import { faker } from '@faker-js/faker';
 
 import { SuinsClient } from '../src';
 
-// TODO: Replace those temp hardcoded values for testing
-const contractObjects = {
-  packageId:
-    '0x8960e22a94c60a18672a086d3b15c69898e2f8c1cd80d6348e04695c5688177e',
-  registry:
-    '0xd669c2f287c22c025279fc021b0ba6377c7dc5383734eb8d42dbfeb07aafc96b',
-};
-const domainName = 'asdasdf.sui';
+const domainName = 'suins.sui';
 const walletAddress =
   '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7';
 
 describe('SuiNS Client', () => {
-  const client = new SuinsClient(new JsonRpcProvider(devnetConnection), {
-    contractObjects,
+  const client = new SuinsClient(new JsonRpcProvider(testnetConnection), {
+    networkType: 'testnet',
   });
 
   const nonExistingDomain = faker.datatype.string(64);
@@ -55,23 +48,16 @@ describe('SuiNS Client', () => {
     });
   });
 
-  describe('getNameObjectInfo', () => {
+  describe('getNameObject', () => {
     it('returns related data of the name', async () => {
-      expect(
-        await client.getNameObjectInfo(domainName, {
-          showAvatar: true,
-          showContentHash: true,
-        }),
-      ).toEqual({
+      expect(await client.getNameObject(domainName)).toEqual({
         avatar:
-          'd2e29ec6719c37852882bf4cebc3de83fc061d4e67c89193c3fa0784e5b0dbd1',
+          '901babd1ab76e5c1918cdd636da16a7319b815fc4292bf00a9795f6f07fd79eb',
         contentHash: 'QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s',
-        data: '0x99703750c7f3efa231df1ed19639b1e607f4098a7c620d49447762e37790dc14',
-        linkedAddr:
-          '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7',
         owner:
           '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7',
-        ttl: '0',
+        targetAddress:
+          '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7',
       });
     });
   });

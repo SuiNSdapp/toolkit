@@ -2,15 +2,14 @@ import { SuiAddress } from '@mysten/sui.js';
 
 export type SuiNSContract = {
   packageId: SuiAddress;
+  suins: SuiAddress;
   registry: SuiAddress;
+  reverseRegistry: SuiAddress;
 };
 
-export type ResolverData = {
+export type NameObject = {
   owner: SuiAddress;
-  ttl: number;
-  linkedAddr: SuiAddress | '';
-  defaultDomainName: SuiAddress | '';
-  data?: SuiAddress;
+  targetAddress: SuiAddress | '';
   avatar?: SuiAddress;
   contentHash?: SuiAddress;
 };
