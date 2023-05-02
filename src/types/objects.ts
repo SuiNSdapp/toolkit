@@ -8,6 +8,7 @@ export type SuiNSContract = {
 };
 
 export type NameObject = {
+  id: SuiAddress;
   owner: SuiAddress;
   targetAddress: SuiAddress | '';
   avatar?: SuiAddress;

@@ -21,6 +21,8 @@ export const parseRegistryResponse = (
     Object.entries({ ...fields }).map(([key, val]) => [camelCase(key), val]),
   );
 
+  object.id = response?.data?.objectId;
+
   delete object.data;
 
   const data = (fields.data?.fields.contents || []).reduce(

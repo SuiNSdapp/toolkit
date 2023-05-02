@@ -122,6 +122,7 @@ class SuinsClient {
   /**
    * Returns the name object data including:
    *
+   * - id: the name object address
    * - owner: the owner address
    * - targetAddress: the linked address
    * - avatar?: the custom avatar id

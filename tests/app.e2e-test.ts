@@ -51,6 +51,7 @@ describe('SuiNS Client', () => {
   describe('getNameObject', () => {
     it('returns related data of the name', async () => {
       expect(await client.getNameObject(domainName)).toEqual({
+        id: '0x5955ebd57ef3ceb04164b401907db6fdec23673ddce117bf02032cca0a8d80a2',
         avatar:
           '901babd1ab76e5c1918cdd636da16a7319b815fc4292bf00a9795f6f07fd79eb',
         contentHash: 'QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s',
