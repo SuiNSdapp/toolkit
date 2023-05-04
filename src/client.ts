@@ -65,24 +65,17 @@ class SuinsClient {
     key: string,
     type = '0x1::string::String',
   ) {
-    try {
-      return await this.suiProvider.getDynamicFieldObject({
-        parentId: parentObjectId,
-        name: {
-          type: type,
-          value: key,
-        },
-      });
-    } catch (error) {
-      if (
-        !((error as Error).cause as Error).message.includes(
-          'Cannot find dynamic field',
-        )
-      ) {
-        throw error;
-      }
-      return;
-    }
+    const dynamicFieldObject = await this.suiProvider.getDynamicFieldObject({
+      parentId: parentObjectId,
+      name: {
+        type: type,
+        value: key,
+      },
+    });
+
+    if (dynamicFieldObject.error?.code === 'dynamicFieldNotFound') return;
+
+    return dynamicFieldObject;
   }
 
   protected async getNameData(
