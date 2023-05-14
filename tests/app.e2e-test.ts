@@ -1,29 +1,30 @@
 import { JsonRpcProvider, testnetConnection } from '@mysten/sui.js';
-import { faker } from '@faker-js/faker';
+// import { faker } from '@faker-js/faker';
 
 import { SuinsClient } from '../src';
 
-const domainName = 'yiuyouioui.sui';
+const domainName = 'manos2.sui';
 const walletAddress =
-  '0xfce343a643991c592c4f1a9ee415a7889293f694ab8828f78e3c81d11c9530c6';
+  '0xe0b97bff42fcef320b5f148db69033b9f689555348b2e90f1da72b0644fa37d0';
 
 describe('SuiNS Client', () => {
   const client = new SuinsClient(new JsonRpcProvider(testnetConnection), {
     networkType: 'testnet',
     contractObjects: {
       packageId:
-        '0x3278d6445c6403c96abe9e25cc1213a85de2bd627026ee57906691f9bbf2bf8a',
+        '0x90cf48e6fe73784de34b18b3e8d856dc6853a53ab0ca5adcb63274daeb361742',
       registry:
-        '0x13a3ab664bfbdff0ab03cd1ce8c6fb3f31a8803f2e6e0b14b610f8e94fcb8509',
+        '0xf30ebb82632f19ad1ddf7d7255d6599db971a70f66d44ea674f29e8263b792e1',
       reverseRegistry:
-        '0x4c13592fb96a80d332626ac33cb80b13aa723b0c93fd59c55805d2b6624b8795',
+        '0xbda71ca8f6f3d01848b4846a21e3224c2ee3327f722f2ed76e3ff1f5f9e6b9e4',
       suins:
-        '0xba7b55eb2c3a03943fad5e1980c5b6b1a7005e014add1cfe9b8a44c84d9c3010',
+        '0x60156fc76564760ad99443112c266046b6852e6992266d06a45f705a3ad66900',
     },
   });
 
-  const nonExistingDomain = faker.datatype.string(64);
-  const nonExistingWalletAddress = walletAddress.replace('86a7', '0000');
+  const nonExistingDomain = walletAddress + '.sui';
+  const nonExistingWalletAddress =
+    walletAddress.substring(0, walletAddress.length - 4) + '0000';
 
   beforeEach(async () => {
     console.log(expect.getState().currentTestName);
@@ -61,17 +62,35 @@ describe('SuiNS Client', () => {
   describe('getNameObject', () => {
     it('returns related data of the name', async () => {
       expect(
-        await client.getNameObject(domainName, { showOwner: true }),
+        await client.getNameObject(domainName, {
+          showOwner: true,
+          showAvatar: true,
+        }),
       ).toEqual({
-        id: '0x5955ebd57ef3ceb04164b401907db6fdec23673ddce117bf02032cca0a8d80a2',
+        id: '0x4d62a55e1a94d849c0896e03b54241b681d34085b875b60effce2bdb05bd0b2a',
+        nftId:
+          '0xc8bb387fdcc4cc5683bb3cdab65048830676101dc84573bd9dc5a2dd875de5c9',
+        expirationTimestampMs: '1715433249664',
+        owner: walletAddress,
+        targetAddress: walletAddress,
         avatar:
-          '901babd1ab76e5c1918cdd636da16a7319b815fc4292bf00a9795f6f07fd79eb',
-        contentHash: 'QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s',
-        owner:
-          '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7',
-        targetAddress:
-          '0x3dd132088475de4d710826a344700667c3c18211011ca346f45eb30541e286a7',
+          'https://api-testnet.suifrens.sui.io/suifrens/0x6f1afd7c8bf933ca19508947a1dd634f42eadbed9ea079119ce99c762bee5838/svg',
+        contentHash: 'QmSosoWZJU9Vt8gwnVmG2NZxTDmAP9BD8qevtPtbj8fpyH',
       });
+    });
+
+    it('Does not include avatar if the flag is off', async () => {
+      expect(
+        await client.getNameObject(domainName, {
+          showOwner: true,
+        }),
+      ).not.toHaveProperty('avatar');
+    });
+
+    it('Does not include owner if the flag is off', async () => {
+      expect(await client.getNameObject(domainName)).not.toHaveProperty(
+        'owner',
+      );
     });
   });
 });
