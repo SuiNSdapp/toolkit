@@ -57,12 +57,20 @@ Fetch a name object:
 const nameObject = await suinsClient.getNameObject('suins.sui');
 ```
 
-Fetch a name object with its dynamic data:
+Fetch a name object including the owner:
 
 ```typescript
 const nameObject = await suinsClient.getNameObject('suins.sui', {
-  showAvatar: true,
-  showContentHash: true,
+  showOwner: true
+});
+```
+
+Fetch a name object including the Avatar the owner has set (it automatically includes owner too):
+
+```typescript
+const nameObject = await suinsClient.getNameObject('suins.sui', {
+  showOwner: true, // this can be skipped as showAvatar includes it by default
+  showAvatar: true
 });
 ```
 

@@ -34,7 +34,7 @@ export const parseRegistryResponse = (
 
       return {
         ...acc,
-        [key]:
+        [camelCase(key)]:
           c.type.includes('Address') || key === 'addr'
             ? normalizeSuiAddress(value)
             : value,

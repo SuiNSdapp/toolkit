@@ -1,4 +1,9 @@
-import { JsonRpcProvider, SuiAddress } from '@mysten/sui.js';
+import {
+  JsonRpcProvider,
+  SuiAddress,
+  getObjectDisplay,
+  getObjectOwner,
+} from '@mysten/sui.js';
 
 import {
   DataFields,
@@ -16,6 +21,8 @@ import {
   parseObjectDataResponse,
   parseRegistryResponse,
 } from './utils/parser';
+
+export const AVATAR_NOT_OWNED = 'AVATAR_NOT_OWNED';
 
 class SuinsClient {
   private suiProvider: JsonRpcProvider;
@@ -116,18 +123,22 @@ class SuinsClient {
    * Returns the name object data including:
    *
    * - id: the name object address
-   * - owner: the owner address
+   * - owner: the owner address // only if you add the `showOwner` parameter. It includes an extra RPC call.
    * - targetAddress: the linked address
-   * - avatar?: the custom avatar id
+   * - avatar?: the custom avatar id // Only if you add showAvatar parameter. It includes an extra RPC call.
    * - contentHash?: the ipfs cid
    *
    * If the input domain has not been registered, it will return an empty object.
+   * If `showAvatar` is included, the owner will be fetched as well.
    *
    * @param key a domain name
    */
   async getNameObject(
     name: string,
-    options = { showOwner: false },
+    options: { showOwner?: boolean; showAvatar?: boolean } | undefined = {
+      showOwner: false,
+      showAvatar: false,
+    },
   ): Promise<NameObject> {
     const [, domain, topLevelDomain] = name.match(/^(.+)\.([^.]+)$/) || [];
     await this.getSuinsContractObjects();
@@ -140,14 +151,44 @@ class SuinsClient {
 
     const nameObject = parseRegistryResponse(registryResponse);
 
-    if (options.showOwner && nameObject.id) {
+    // check if we should also query for avatar.
+    // we can only query if the object has an avatar set
+    // and the query includes avatar.
+    const includeAvatar = nameObject.avatar && options?.showAvatar;
+
+    if ((options?.showOwner || includeAvatar) && nameObject.nftId) {
       const ownerResponse = await this.suiProvider.getObject({
-        id: nameObject.id,
+        id: nameObject.nftId,
         options: { showOwner: true },
       });
-      nameObject.owner = (
-        ownerResponse.data?.owner as { ObjectOwner: string }
-      ).ObjectOwner;
+      nameObject.owner =
+        (getObjectOwner(ownerResponse) as { AddressOwner: string })
+          ?.AddressOwner || null;
+    }
+
+    // Query for domain's avatar.
+    if (includeAvatar) {
+      const avatarNft = await this.suiProvider.getObject({
+        id: nameObject.avatar,
+        options: {
+          showDisplay: true,
+          showOwner: true,
+        },
+      });
+      // Check that the NFT is still owned by the owner of the domain
+      // otherwise don't return the avatar.
+      // replace domain.owner with the owner the SDK receives.
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore-next-line
+      if (getObjectOwner(avatarNft)?.AddressOwner === nameObject.owner) {
+        const display = getObjectDisplay(avatarNft);
+        nameObject.avatar = display?.data?.image_url || null;
+      } else {
+        nameObject.avatar = AVATAR_NOT_OWNED;
+      }
+    } else {
+      delete nameObject.avatar;
     }
 
     return nameObject;
