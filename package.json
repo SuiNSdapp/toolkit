@@ -3,7 +3,7 @@
   "author": "Sui Name Service <info@suins.io>",
   "description": "SuiNS TypeScript SDK",
   "license": "Apache-2.0",
-  "version": "1.4.2",
+  "version": "1.4.3-beta.4",
   "files": [
     "dist",
     "src"

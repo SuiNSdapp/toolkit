@@ -62,7 +62,7 @@ class SuinsClient {
 
   protected async getDynamicFieldObject(
     parentObjectId: SuiAddress,
-    key: string,
+    key: any,
     type = '0x1::string::String',
   ) {
     const dynamicFieldObject = await this.suiProvider.getDynamicFieldObject({
@@ -125,18 +125,30 @@ class SuinsClient {
    *
    * @param key a domain name
    */
-  async getNameObject(name: string): Promise<NameObject> {
+  async getNameObject(
+    name: string,
+    options = { showOwner: false },
+  ): Promise<NameObject> {
+    const [, domain, topLevelDomain] = name.match(/^(.+)\.([^.]+)$/) || [];
     await this.getSuinsContractObjects();
 
     const registryResponse = await this.getDynamicFieldObject(
       (this.contractObjects as SuiNSContract).registry,
-      name,
+      [domain, topLevelDomain],
+      `${this.contractObjects?.packageId}::domain::Domain`,
     );
-    const { defaultDomainName, ...nameObject } =
-      parseRegistryResponse(registryResponse);
 
-    if (name.includes('.addr.reverse'))
-      return { defaultDomainName, ...nameObject };
+    const nameObject = parseRegistryResponse(registryResponse);
+
+    if (options.showOwner && nameObject.id) {
+      const ownerResponse = await this.suiProvider.getObject({
+        id: nameObject.id,
+        options: { showOwner: true },
+      });
+      nameObject.owner = (
+        ownerResponse.data?.owner as { ObjectOwner: string }
+      ).ObjectOwner;
+    }
 
     return nameObject;
   }
