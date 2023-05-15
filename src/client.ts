@@ -1,6 +1,7 @@
 import {
   JsonRpcProvider,
   SuiAddress,
+  SuiObjectResponse,
   getObjectDisplay,
   getObjectOwner,
 } from '@mysten/sui.js';
@@ -23,6 +24,35 @@ import {
 } from './utils/parser';
 
 export const AVATAR_NOT_OWNED = 'AVATAR_NOT_OWNED';
+
+// get NFT's owner from RPC.
+const getOwner = async (
+  provider: JsonRpcProvider,
+  nftId: string,
+): Promise<string | null> => {
+  const ownerResponse = await provider.getObject({
+    id: nftId,
+    options: { showOwner: true },
+  });
+  return (
+    (getObjectOwner(ownerResponse) as { AddressOwner: string })?.AddressOwner ||
+    null
+  );
+};
+
+// get avatar NFT Object from RPC.
+const getAvatar = async (
+  provider: JsonRpcProvider,
+  avatar: string,
+): Promise<SuiObjectResponse> => {
+  return await provider.getObject({
+    id: avatar,
+    options: {
+      showDisplay: true,
+      showOwner: true,
+    },
+  });
+};
 
 class SuinsClient {
   private suiProvider: JsonRpcProvider;
@@ -156,39 +186,31 @@ class SuinsClient {
     // and the query includes avatar.
     const includeAvatar = nameObject.avatar && options?.showAvatar;
 
-    if ((options?.showOwner || includeAvatar) && nameObject.nftId) {
-      const ownerResponse = await this.suiProvider.getObject({
-        id: nameObject.nftId,
-        options: { showOwner: true },
-      });
-      nameObject.owner =
-        (getObjectOwner(ownerResponse) as { AddressOwner: string })
-          ?.AddressOwner || null;
-    }
+    // IF we have showOwner or includeAvatar flag, we fetch the owner &/or avatar,
+    // We use Promise.all to do these calls at the same time.
+    if (nameObject.nftId && (includeAvatar || options?.showOwner)) {
+      const [owner, avatarNft] = await Promise.all([
+        getOwner(this.suiProvider, nameObject.nftId),
+        includeAvatar
+          ? getAvatar(this.suiProvider, nameObject.avatar)
+          : Promise.resolve(null),
+      ]);
 
-    // Query for domain's avatar.
-    if (includeAvatar) {
-      const avatarNft = await this.suiProvider.getObject({
-        id: nameObject.avatar,
-        options: {
-          showDisplay: true,
-          showOwner: true,
-        },
-      });
-      // Check that the NFT is still owned by the owner of the domain
-      // otherwise don't return the avatar.
-      // replace domain.owner with the owner the SDK receives.
+      nameObject.owner = owner;
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore-next-line
-      if (getObjectOwner(avatarNft)?.AddressOwner === nameObject.owner) {
-        const display = getObjectDisplay(avatarNft);
-        nameObject.avatar = display?.data?.image_url || null;
+      // Parse avatar NFT, check ownership and fixup the request response.
+      if (includeAvatar && avatarNft) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore-next-line
+        if (getObjectOwner(avatarNft)?.AddressOwner === nameObject.owner) {
+          const display = getObjectDisplay(avatarNft);
+          nameObject.avatar = display?.data?.image_url || null;
+        } else {
+          nameObject.avatar = AVATAR_NOT_OWNED;
+        }
       } else {
-        nameObject.avatar = AVATAR_NOT_OWNED;
+        delete nameObject.avatar;
       }
-    } else {
-      delete nameObject.avatar;
     }
 
     return nameObject;
