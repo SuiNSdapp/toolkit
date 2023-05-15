@@ -1,7 +1,6 @@
 import {
   JsonRpcProvider,
   SuiAddress,
-  SuiObjectResponse,
   getObjectDisplay,
   getObjectOwner,
 } from '@mysten/sui.js';
@@ -22,37 +21,9 @@ import {
   parseObjectDataResponse,
   parseRegistryResponse,
 } from './utils/parser';
+import { getAvatar, getOwner } from './utils/queries';
 
 export const AVATAR_NOT_OWNED = 'AVATAR_NOT_OWNED';
-
-// get NFT's owner from RPC.
-const getOwner = async (
-  provider: JsonRpcProvider,
-  nftId: string,
-): Promise<string | null> => {
-  const ownerResponse = await provider.getObject({
-    id: nftId,
-    options: { showOwner: true },
-  });
-  return (
-    (getObjectOwner(ownerResponse) as { AddressOwner: string })?.AddressOwner ||
-    null
-  );
-};
-
-// get avatar NFT Object from RPC.
-const getAvatar = async (
-  provider: JsonRpcProvider,
-  avatar: string,
-): Promise<SuiObjectResponse> => {
-  return await provider.getObject({
-    id: avatar,
-    options: {
-      showDisplay: true,
-      showOwner: true,
-    },
-  });
-};
 
 class SuinsClient {
   private suiProvider: JsonRpcProvider;
