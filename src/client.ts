@@ -146,7 +146,7 @@ class SuinsClient {
 
     const registryResponse = await this.getDynamicFieldObject(
       (this.contractObjects as SuiNSContract).registry,
-      [domain, topLevelDomain],
+      [topLevelDomain, domain],
       `${this.contractObjects?.packageId}::domain::Domain`,
     );
 
@@ -210,8 +210,9 @@ class SuinsClient {
       'address',
     );
     const data = parseObjectDataResponse(res);
+    const labels = data?.value?.fields?.labels;
 
-    return data?.value;
+    return Array.isArray(labels) ? labels.reverse()?.join('.') : undefined;
   }
 }
 

@@ -3,22 +3,22 @@ import { JsonRpcProvider, testnetConnection } from '@mysten/sui.js';
 
 import { SuinsClient } from '../src';
 
-const domainName = 'manos2.sui';
+const domainName = 'test.sui';
 const walletAddress =
-  '0xe0b97bff42fcef320b5f148db69033b9f689555348b2e90f1da72b0644fa37d0';
+  '0xfce343a643991c592c4f1a9ee415a7889293f694ab8828f78e3c81d11c9530c6';
 
 describe('SuiNS Client', () => {
   const client = new SuinsClient(new JsonRpcProvider(testnetConnection), {
     networkType: 'testnet',
     contractObjects: {
       packageId:
-        '0x90cf48e6fe73784de34b18b3e8d856dc6853a53ab0ca5adcb63274daeb361742',
+        '0xfdba31b34a43e058f17c5cf4b12d9b9e0a08c0623d8569092c022e0c77df46d3',
       registry:
-        '0xf30ebb82632f19ad1ddf7d7255d6599db971a70f66d44ea674f29e8263b792e1',
+        '0xac06695279c2a92436068cebe5ea778135ac503337642e27493431603ae6a71d',
       reverseRegistry:
-        '0xbda71ca8f6f3d01848b4846a21e3224c2ee3327f722f2ed76e3ff1f5f9e6b9e4',
+        '0x34a36dd204f8351a157d19b87bada9d448ec40229d56f22bff04fa23713a5c31',
       suins:
-        '0x60156fc76564760ad99443112c266046b6852e6992266d06a45f705a3ad66900',
+        '0x4acaf19db12fafce1943bbd44c7f794e1d81d00aeb63617096e5caa39499ba88',
     },
   });
 
@@ -67,15 +67,15 @@ describe('SuiNS Client', () => {
           showAvatar: true,
         }),
       ).toEqual({
-        id: '0x4d62a55e1a94d849c0896e03b54241b681d34085b875b60effce2bdb05bd0b2a',
+        id: '0x7ee9ac31830e91f76f149952f7544b6d007b9a5520815e3d30264fa3d2791ad1',
         nftId:
-          '0xc8bb387fdcc4cc5683bb3cdab65048830676101dc84573bd9dc5a2dd875de5c9',
-        expirationTimestampMs: '1715433249664',
+          '0x2879ff9464f06c0779ca34eec6138459a3e9855852dd5d1a025164c344b2b555',
+        expirationTimestampMs: '1715765005617',
         owner: walletAddress,
         targetAddress: walletAddress,
         avatar:
-          'https://api-testnet.suifrens.sui.io/suifrens/0x6f1afd7c8bf933ca19508947a1dd634f42eadbed9ea079119ce99c762bee5838/svg',
-        contentHash: 'QmSosoWZJU9Vt8gwnVmG2NZxTDmAP9BD8qevtPtbj8fpyH',
+          'https://api-testnet.suifrens.sui.io/suifrens/0x4e3ba002444df6c6774f41833f881d351533728d585343c58cca1fec1fef74ef/svg',
+        contentHash: 'QmZsHKQk9FbQZYCy7rMYn1z6m9Raa183dNhpGCRm3fX71s',
       });
     });
 
