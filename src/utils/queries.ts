@@ -13,8 +13,10 @@ export const getOwner = async (
     id: nftId,
     options: { showOwner: true },
   });
+  const owner = getObjectOwner(ownerResponse);
   return (
-    (getObjectOwner(ownerResponse) as { AddressOwner: string })?.AddressOwner ||
+    (owner as { AddressOwner: string })?.AddressOwner ||
+    (owner as { ObjectOwner: string })?.ObjectOwner ||
     null
   );
 };
